@@ -1,3 +1,10 @@
+--[[ Requires to made it compatible with https://luvit.io/ ]]--
+
+local os = os or require('os')
+os.exit = os.exit or process.exit
+local string = string or require('string')
+local table = table or require('table')
+
 --[[ 
         luaunit.lua
 
