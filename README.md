@@ -14,7 +14,7 @@ into Continuous Integration platforms (Jenkins, Maven, ...) . The integrated com
 options provide a flexible interface to select tests by name or patterns, control output 
 format, set verbosity, ...
 
-LuaUnit works with Lua 5.1 and 5.2 . It was tested on Windows XP, Windows Server 2012 R2 (x64) and Ubuntu 14.04 (see 
+LuaUnit works with Lua 5.1, 5.2 and 5.3 . It was tested on Windows XP, Windows Server 2012 R2 (x64) and Ubuntu 14.04 (see 
 continuous build results on [Travis-CI](https://travis-ci.org/bluebird75/luaunit) and [AppVeyor](https://ci.appveyor.com/project/bluebird75/luaunit) ) and should work on all platforms supported by lua.
 It has no other dependency than lua itself. 
 
@@ -32,6 +32,18 @@ Documentation is available on [read-the-docs](http://luaunit.readthedocs.org/en/
 LuaUnit has a mailing list with low activity (a few emails per months). To subscribe or read the archives, please go to: [LuaUnit Mailing-list](http://lists.freehackers.org/list/luaunit%40freehackers.org/). If you are using LuaUnit, please drop us a note, we are always happy to hear from new users.
 
 ### History 
+
+#### Version 3.1 - 10 Mar. 2015
+* luaunit no longer pollutes global namespace, unless defining EXPORT_ASSERT_TO_GLOBALS to true
+* fixes and validation of JUnit XML generation
+* strip luaunit internal information from stacktrace
+* general improvements of test results with duration and other details
+* improve printing for tables, with an option to always print table id
+* fix printing of recursive tables 
+
+**Important note when upgrading to version 3.1** : assertions functions are
+no longer exported directly to the global namespace. See documentation for upgrade
+paths.
 
 #### Version 3.0 - 9. Oct 2014
 

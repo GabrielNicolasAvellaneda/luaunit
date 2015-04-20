@@ -85,9 +85,9 @@ end
 local HAS_XMLLINT 
 do
     xmllint_output_fname = 'test/has_xmllint.txt'
-    HAS_XMLLINT = osExec('xmllint.exe --version 2> '..xmllint_output_fname)
+    HAS_XMLLINT = osExec('xmllint --version 2> '..xmllint_output_fname)
     if not HAS_XMLLINT then
-        report('WARNING: xmllint.exe absent, can not validate xml validity')
+        report('WARNING: xmllint absent, can not validate xml validity')
     end
     os.remove(xmllint_output_fname)
 end
@@ -150,7 +150,7 @@ function adjustFile( fileOut, fileIn, pattern, mayBeAbsent, verbose )
             -- capture but nothing to adjust, just return
             return
         end
-        error('No line in file '..fileOut..' matching pattern '..pattern )
+        error('No line in file '..fileOut..' matching pattern "'..pattern..'"' )
     end
 
     f = io.open( fileOut, 'w')
@@ -177,6 +177,8 @@ function check_tap_output( fileToRun, options, output, refOutput, refExitCode )
         -- For Lua 5.1 / 5.2 compatibility
         adjustFile( output, refOutput, '(%s+%[C%]: i?n? ?%?)', true )
     end
+    -- For Lua 5.3: stack trace uses "method" instead of "function"
+    adjustFile( output, refOutput, '.*%.lua:%d+: in (%S*) .*', true, false )
 
     ret = osExec( string.format([[diff -NPw -u  -I " *\.[/\\]luaunit.lua:[0123456789]\+:.*" %s %s]], refOutput, output ) )
     if not ret then
@@ -197,14 +199,16 @@ function check_text_output( fileToRun, options, output, refOutput, refExitCode )
         error(string.format('Expected exit code %d but got %d for file %s', refExitCode, exitCode, fileToRun ) )
     end
 
-    if options ~= '--quiet' then
+    if options == '--verbose' then
         adjustFile( output, refOutput, 'Started on (.*)')
     end
-    adjustFile( output, refOutput, 'Success: .*, executed in (%d.%d*) seconds' )
+    adjustFile( output, refOutput, 'Ran .* tests in (%d.%d*) seconds' )
     if options ~= '--quiet' then
         -- For Lua 5.1 / 5.2 compatibility
         adjustFile( output, refOutput, '(%s+%[C%]: i?n? ?%?)', true )
     end
+    -- For Lua 5.3: stack trace uses "method" instead of "function"
+    adjustFile( output, refOutput, '.*%.lua:%d+: in (%S*) .*', true, false )
  
 
     ret = osExec( string.format([[diff -NPw -u  -I " *\.[/\\]luaunit.lua:[0123456789]\+:.*" %s %s]], refOutput, output ) )
@@ -257,6 +261,9 @@ function check_xml_output( fileToRun, options, output, xmlOutput, xmlLintOutput,
     adjustFile( xmlOutput, refXmlOutput, '.*<property name="Lua Version" value="(Lua 5..)"/>')
     adjustFile( output, refOutput, '(.+%[C%]: i?n? ?%?)', true )
     adjustFile( xmlOutput, refXmlOutput, '(.+%[C%]: i?n? ?%?.*)', true )
+    -- For Lua 5.3: stack trace uses "method" instead of "function"
+    adjustFile( output, refOutput, '.*%.lua:%d+: in (%S*) .*', true, false )
+    adjustFile( xmlOutput, refXmlOutput, '.*%.lua:%d+: in (%S*) .*', true, false )
 
 
     if HAS_XMLLINT then
@@ -435,8 +442,9 @@ function testLegacyLuaunitUsage()
     -- run test/legacy_example_usage and check exit status
     local ret, exitCode, refExitCode, fileToRun
     fileToRun = "test/legacy_example_with_luaunit.lua"
+    fileOutput = "test/legacyExample.txt"
     refExitCode = 12
-    ret, exitCode = osExec(string.format( '%s %s  --output text', LUA,  fileToRun)  )
+    ret, exitCode = osExec(string.format( '%s %s  --output text > %s', LUA,  fileToRun, fileOutput)  )
 
 
     if refExitCode ~= nil and exitCode ~= refExitCode then
@@ -507,6 +515,8 @@ filesSetIndex = {
     TestXml=filesToGenerateTestXml,
 }
 
+
+
 function updateRefFiles( filesToGenerate )
     local ret
 
@@ -539,7 +549,11 @@ function main()
             while i <=  #arg do
                 fileSet = filesSetIndex[ arg[i] ]
                 if fileSet == nil then
-                    error('Unable to generate files for target '..arg[i] )
+                    local validTarget = ''
+                    for k,v in pairs(filesSetIndex) do
+                        validTarget = validTarget .. ' '.. k
+                    end
+                    error(string.format('Unable to generate files for target %s\nPossible targets: %s\n', arg[i], validTarget) )
                 end
                 -- print('Generating '..arg[i])
                 updateRefFiles( fileSet )

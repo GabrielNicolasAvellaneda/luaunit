@@ -38,6 +38,7 @@ _ReSharper*/
 *.lsln
 *.sublime-workspace
 doc/_build/
+doc/html/
 junit_stdout.txt
 output_junit.xml
 junit_stdout?.txt
@@ -48,5 +49,6 @@ test/testWithXml*.xml
 test/testWithXml*.txt
 test/unitTests*.xml
 test/unitTests*.txt
+test/legacyExample.txt
 
 *.diff
